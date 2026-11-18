@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>傳炸彈</title>
+<meta name="description" content="團體破冰遊戲：音樂響起開始傳，隨機時間爆炸，邊傳邊答題。">
+<meta property="og:title" content="傳炸彈">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;700;900&family=Fredoka:wght@600;700&display=swap">
+<style>
+:root{--ink:#22304a;--paper:#fffdf8;--hot:#ef4136;--warm:#ffb020;--sky:#bfe4ff;--danger:0;
+ --fh:'Huninn','Noto Sans TC','PingFang TC',sans-serif;--fb:'Noto Sans TC','PingFang TC',sans-serif;--fn:'Fredoka','Huninn',sans-serif;color-scheme:light}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:var(--fb);color:var(--ink);background:linear-gradient(180deg,#bfe4ff,#fff3da);overflow:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 50% 55%,#ffd24d 0,#ff7a3c 45%,#d92a2a 100%);opacity:var(--danger);transition:opacity .4s;pointer-events:none}
+#app{position:relative;height:100%;display:grid;grid-template-rows:auto 1fr auto;padding:max(14px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(14px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));gap:10px}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--fh);font-weight:400;font-size:clamp(24px,3.4vw,42px);margin:0;background:var(--paper);border-radius:999px;padding:6px 24px;box-shadow:0 5px 0 rgba(34,48,74,.14)}
+.pill{background:var(--paper);border-radius:999px;padding:8px 18px;font-family:var(--fh);font-size:clamp(15px,1.6vw,20px);box-shadow:0 4px 0 rgba(34,48,74,.12)}
+.sp{flex:1}
+button{font-family:var(--fh);cursor:pointer;border:0}
+.btn{background:var(--ink);color:#fff;border-radius:999px;padding:10px 24px;font-size:clamp(16px,1.7vw,22px);box-shadow:0 5px 0 rgba(0,0,0,.2)}
+.btn.alt{background:var(--paper);color:var(--ink);box-shadow:0 4px 0 rgba(34,48,74,.14)}
+.btn:active{transform:translateY(3px)}
+main{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5vh;min-height:0;text-align:center}
+#topic{font-family:var(--fh);font-size:clamp(30px,6vw,92px);line-height:1.2;background:var(--paper);border-radius:28px;padding:.25em .8em;box-shadow:0 8px 0 rgba(34,48,74,.14);max-width:96%}
+#topic small{display:block;font-family:var(--fb);font-size:.32em;color:#5b6884}
+#bombWrap{position:relative;height:min(46vh,46vw);aspect-ratio:1;flex:none}
+#bomb{width:100%;height:100%;transform-origin:50% 60%}
+body.run #bomb{animation:wob calc(.9s - var(--danger)*.72s) infinite}
+@keyframes wob{0%,100%{transform:rotate(-4deg) scale(1)}50%{transform:rotate(4deg) scale(calc(1.02 + var(--danger)*.1))}}
+#spark{transform-origin:center;transform-box:fill-box;animation:spk .18s infinite}
+@keyframes spk{50%{transform:scale(1.5) rotate(40deg)}}
+body:not(.run) #spark{display:none}
+#status{font-family:var(--fh);font-size:clamp(20px,3vw,40px)}
+#start{font-size:clamp(24px,3.6vw,48px);padding:.4em 1.6em;background:var(--hot);box-shadow:0 8px 0 #a31d17}
+footer{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.set{background:var(--paper);border-radius:18px;padding:8px 14px;display:flex;gap:8px;align-items:center;font-size:clamp(14px,1.4vw,18px);box-shadow:0 4px 0 rgba(34,48,74,.12)}
+.set b{font-family:var(--fh);font-weight:400}
+.seg{display:inline-flex;background:#f1ede4;border-radius:999px;padding:3px;gap:3px}
+.seg button{background:transparent;border-radius:999px;padding:5px 12px;font-size:1em;color:#5b6884}
+.seg button.on{background:var(--ink);color:#fff}
+#yt{width:160px;height:90px;border-radius:10px;overflow:hidden;background:#000;flex:none}
+#yt iframe{width:160px;height:90px;border:0}
+/* boom */
+#boom{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:2.5vh;background:radial-gradient(circle,#fff 0,#ffe45c 22%,#ff7a3c 55%,#b3161b 100%);z-index:9;text-align:center;padding:20px}
+#boom.on{display:flex;animation:flash .5s}
+@keyframes flash{0%{filter:brightness(6)}100%{filter:none}}
+body.shake #app{animation:shake .6s}
+@keyframes shake{10%,50%,90%{transform:translate(-14px,8px)}30%,70%{transform:translate(14px,-8px)}}
+#boom h2{font-family:var(--fn);font-weight:700;font-size:clamp(70px,17vw,260px);margin:0;color:#fff;-webkit-text-stroke:6px var(--ink);paint-order:stroke;line-height:.95;transform:rotate(-5deg);animation:bang .5s cubic-bezier(.2,1.8,.4,1) both}
+@keyframes bang{from{transform:scale(.2) rotate(-25deg)}}
+#task{background:var(--paper);border-radius:28px;padding:.5em 1em;font-family:var(--fh);font-size:clamp(26px,4.4vw,64px);box-shadow:0 10px 0 rgba(34,48,74,.2);max-width:92%}
+#task small{display:block;font-family:var(--fb);font-size:.38em;color:#5b6884}
+.row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+@media (max-width:700px){#yt{width:120px;height:68px}#yt iframe{width:120px;height:68px}}
+@media (prefers-reduced-motion:reduce){body.run #bomb,#spark,body.shake #app{animation:none}}
+</style></head>
+<body>
+<div id="app">
+ <header><h1>傳炸彈</h1><span class="pill" id="round">第 1 回合</span><span class="sp"></span><button class="btn alt" id="mute">音樂：開</button><button class="btn alt" id="full">全螢幕</button></header>
+ <main>
+  <div id="topic">準備好了嗎？<small>按「開始」後，拿到炸彈的人說出答案，才能傳給下一位</small></div>
+  <div id="bombWrap"><svg id="bomb" viewBox="0 0 200 200" aria-hidden="true">
+   <path d="M118 52 Q130 20 160 30" fill="none" stroke="#8a6a4e" stroke-width="7" stroke-linecap="round"/>
+   <g id="spark"><path d="M160 30l6-14 4 12 13-4-9 10 10 9-14-1-2 13-7-12-12 5 8-11z" fill="#ffcf3f" stroke="#ef4136" stroke-width="3" stroke-linejoin="round"/></g>
+   <rect x="92" y="44" width="42" height="26" rx="6" fill="#3a4763"/>
+   <circle cx="100" cy="122" r="70" fill="#22304a"/>
+   <path d="M52 100a52 52 0 0 1 40-36" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" opacity=".45"/>
+   <circle cx="78" cy="118" r="9" fill="#fff"/><circle cx="122" cy="118" r="9" fill="#fff"/>
+   <path id="mouth" d="M80 146q20 14 40 0" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+  </svg></div>
+  <div id="status">隨機 10–30 秒內爆炸</div>
+  <div class="row"><button class="btn" id="start">開始</button><button class="btn alt" id="newq">換題目</button></div>
+ </main>
+ <footer>
+  <div class="set"><b>爆炸時間</b><div class="seg" id="sTime"><button data-v="8,18">短 8–18 秒</button><button class="on" data-v="10,30">中 10–30 秒</button><button data-v="20,50">長 20–50 秒</button></div></div>
+  <div class="set"><b>題目</b><div class="seg" id="sCat"><button class="on" data-v="all">綜合</button><button data-v="life">生活</button><button data-v="old">懷舊</button><button data-v="cls">失智課堂</button></div></div>
+  <div id="yt"><div id="ytp"></div></div>
+ </footer>
+</div>
+<div id="boom"><h2>BOOM!</h2><div id="task"></div><div class="row"><button class="btn" id="again">下一回合</button><button class="btn alt" id="newtask">換一張任務卡</button></div></div>
+<script>
+const YT_ID='XAYhNHhxN0A';
+const Q={life:['一種水果','一種蔬菜','一種交通工具','廚房裡的東西','一種顏色','一種動物','便利商店買得到的東西','一種運動','一個台灣縣市','早餐會吃的東西','一種飲料','浴室裡的東西','一種職業','菜市場賣的東西','一種花','身體的一個部位'],
+ old:['一首老歌','一位老歌星','小時候的零食','小時候玩的遊戲','一道年菜','一個節日','一部老電影或連續劇','柑仔店賣的東西','一種傳統小吃','夜市裡的攤位','拜拜會準備的東西','阿嬤家會有的東西'],
+ cls:['失智症的一個警訊','一種可改變的失智危險因子','一個評估工具的名字','一項日常生活活動（ADL 或 IADL）','一種適合長輩的運動','一個認知遊戲','一種記憶輔具','照顧者可以用的一個資源','六大認知領域其中一個','讓家裡更安全的一個方法']};
+const TASKS=['唱一句你最喜歡的歌','學一種動物叫三聲','原地超慢跑 10 秒','跟左右兩邊的人擊掌','用台語說「我愛你」','做出最誇張的笑臉 3 秒','說一件今天開心的事','帶大家做一個伸展動作','從 20 倒數到 1','稱讚右邊的人一句話','說出三種失智警訊','雙手比 1 和 5，再左右互換 5 次'];
+const $=s=>document.querySelector(s),rnd=n=>Math.random()*n|0;
+let ac=null,running=false,tEnd=0,tStart=0,tickT=null,round=1,musicOn=true,ytP=null,ytOK=false,lastQ='';
+function audio(){if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(ac&&ac.state==='suspended')ac.resume();return ac;}
+function tick(danger){const a=audio();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type='square';o.frequency.value=880+danger*700;g.gain.setValueAtTime(.0001,a.currentTime);g.gain.exponentialRampToValueAtTime(.16,a.currentTime+.005);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+.07);o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+.09);}
+function boomSound(){const a=audio();if(!a)return;const t=a.currentTime,len=2.4;const buf=a.createBuffer(1,a.sampleRate*len,a.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2.2);
+ const n=a.createBufferSource();n.buffer=buf;const f=a.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(4200,t);f.frequency.exponentialRampToValueAtTime(90,t+1.6);const g=a.createGain();g.gain.setValueAtTime(1.1,t);g.gain.exponentialRampToValueAtTime(.001,t+len);n.connect(f).connect(g).connect(a.destination);n.start(t);
+ const o=a.createOscillator(),og=a.createGain();o.type='sine';o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(28,t+.9);og.gain.setValueAtTime(1,t);og.gain.exponentialRampToValueAtTime(.001,t+1.3);o.connect(og).connect(a.destination);o.start(t);o.stop(t+1.4);
+ const c=a.createOscillator(),cg=a.createGain();c.type='sawtooth';c.frequency.setValueAtTime(900,t);c.frequency.exponentialRampToValueAtTime(60,t+.25);cg.gain.setValueAtTime(.5,t);cg.gain.exponentialRampToValueAtTime(.001,t+.3);c.connect(cg).connect(a.destination);c.start(t);c.stop(t+.32);}
+/* background music: the YouTube video, looped; fallback is a synthesized pulse */
+let bgT=null,bgStep=0;
+function synthMusic(on){clearInterval(bgT);bgT=null;if(!on)return;const notes=[196,196,233,196,262,196,233,175];bgT=setInterval(()=>{const a=audio();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.value=notes[bgStep++%8];g.gain.setValueAtTime(.12,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.22);o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+.24);},250);}
+function music(on){if(!musicOn)on=false;if(ytOK&&ytP){try{on?ytP.playVideo():ytP.pauseVideo();}catch(e){}synthMusic(false);}else synthMusic(on);}
+window.onYouTubeIframeAPIReady=()=>{try{ytP=new YT.Player('ytp',{width:160,height:90,videoId:YT_ID,playerVars:{loop:1,playlist:YT_ID,controls:1,rel:0,playsinline:1},events:{onReady:()=>{ytOK=true;if(running){synthMusic(false);music(true);}},onError:()=>{ytOK=false;$('#yt').style.display='none';if(running)music(true);}}});}catch(e){}};
+(function(){const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';s.onerror=()=>{$('#yt').style.display='none';};document.head.appendChild(s);})();
+function seg(id){const el=$(id);el.onclick=e=>{const b=e.target.closest('button');if(!b)return;el.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));if(id==='#sTime'&&!running){const[a,c]=b.dataset.v.split(',');$('#status').textContent='隨機 '+a+'–'+c+' 秒內爆炸';}};return()=>el.querySelector('.on').dataset.v;}
+const getTime=seg('#sTime'),getCat=seg('#sCat');
+function newQ(){const c=getCat();const pool=c==='all'?[...Q.life,...Q.old]:Q[c];let q;do{q=pool[rnd(pool.length)]}while(q===lastQ&&pool.length>1);lastQ=q;$('#topic').innerHTML='說出'+q+'<small>說出來才能傳給下一位，不能重複別人說過的</small>';}
+function loop(){if(!running)return;const now=performance.now(),p=Math.min(1,(now-tStart)/(tEnd-tStart));document.documentElement.style.setProperty('--danger',(p*p).toFixed(3));if(now>=tEnd){explode();return;}requestAnimationFrame(loop);}
+function scheduleTick(){if(!running)return;const p=Math.min(1,(performance.now()-tStart)/(tEnd-tStart));tick(p);tickT=setTimeout(scheduleTick,900-p*p*760);}
+function start(){audio();const[a,b]=getTime().split(',').map(Number);const d=(a+Math.random()*(b-a))*1000;tStart=performance.now();tEnd=tStart+d;running=true;document.body.classList.add('run');$('#boom').classList.remove('on');newQ();$('#status').textContent='快傳！炸彈隨時會爆…';$('#start').textContent='暫停';music(true);scheduleTick();requestAnimationFrame(loop);}
+let pausedLeft=0;
+function pause(){pausedLeft=tEnd-performance.now();running=false;clearTimeout(tickT);document.body.classList.remove('run');music(false);$('#start').textContent='繼續';$('#status').textContent='暫停中';}
+function resume(){audio();const dur=tEnd-tStart;tEnd=performance.now()+pausedLeft;tStart=tEnd-dur;pausedLeft=0;running=true;document.body.classList.add('run');music(true);$('#start').textContent='暫停';$('#status').textContent='快傳！炸彈隨時會爆…';scheduleTick();requestAnimationFrame(loop);}
+function newTask(){$('#task').innerHTML=TASKS[rnd(TASKS.length)]+'<small>手上拿著炸彈的人，請完成任務</small>';}
+function explode(){running=false;clearTimeout(tickT);music(false);boomSound();document.body.classList.remove('run');document.body.classList.add('shake');setTimeout(()=>document.body.classList.remove('shake'),700);document.documentElement.style.setProperty('--danger',0);newTask();$('#boom').classList.add('on');$('#start').textContent='開始';}
+function reset(){$('#boom').classList.remove('on');round++;$('#round').textContent='第 '+round+' 回合';const[a,b]=getTime().split(',');$('#status').textContent='隨機 '+a+'–'+b+' 秒內爆炸';$('#topic').innerHTML='準備好了嗎？<small>按「開始」後，拿到炸彈的人說出答案，才能傳給下一位</small>';}
+$('#start').onclick=()=>{if(running)pause();else if(pausedLeft>0)resume();else start();};
+$('#newq').onclick=newQ;$('#again').onclick=()=>{reset();start();};$('#newtask').onclick=newTask;
+$('#mute').onclick=()=>{musicOn=!musicOn;$('#mute').textContent='音樂：'+(musicOn?'開':'關');music(running);};
+$('#full').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{});}catch(e){}};
+addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();if($('#boom').classList.contains('on')){reset();start();}else $('#start').click();}else if(e.key==='n'||e.key==='N')newQ();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&running)pause();});
+</script>
+</body></html>
